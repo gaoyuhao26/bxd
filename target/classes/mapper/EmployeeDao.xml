@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.softeem.dao.EmployeeDao">
+
+    <resultMap type="com.softeem.entity.Employee" id="EmployeeMap">
+        <result property="emId" column="em_id" jdbcType="INTEGER"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="loginName" column="login_name" jdbcType="VARCHAR"/>
+        <result property="depId" column="dep_id" jdbcType="INTEGER"/>
+        <result property="positionId" column="position_id" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="EmployeeMap">
+        select
+          em_id, password, name, login_name, dep_id, position_id, status
+        from ssm_project.employee
+        where em_id = #{emId}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="EmployeeMap">
+        select
+          em_id, password, name, login_name, dep_id, position_id, status
+        from ssm_project.employee
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="EmployeeMap">
+        select
+        em_id, password, name, login_name, dep_id, position_id, status
+        from ssm_project.employee
+        <where>
+            <if test="emId != null">
+                and em_id = #{emId}
+            </if>
+            <if test="password != null and password != ''">
+                and password = #{password}
+            </if>
+            <if test="name != null and name != ''">
+                and name = #{name}
+            </if>
+            <if test="loginName != null and loginName != ''">
+                and login_name = #{loginName}
+            </if>
+            <if test="depId != null">
+                and dep_id = #{depId}
+            </if>
+            <if test="positionId != null">
+                and position_id = #{positionId}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="emId" useGeneratedKeys="true">
+        insert into ssm_project.employee(password, name, login_name, dep_id, position_id, status)
+        values (#{password}, #{name}, #{loginName}, #{depId}, #{positionId}, #{status})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update ssm_project.employee
+        <set>
+            <if test="password != null and password != ''">
+                password = #{password},
+            </if>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="loginName != null and loginName != ''">
+                login_name = #{loginName},
+            </if>
+            <if test="depId != null">
+                dep_id = #{depId},
+            </if>
+            <if test="positionId != null">
+                position_id = #{positionId},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+        where em_id = #{emId}
+    </update>
+
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from ssm_project.employee where em_id = #{emId}
+    </delete>
+
+    <resultMap id="UserInfoMap" type="com.softeem.dto.EmployeeDTO">
+        <result property="emId" column="em_id" jdbcType="INTEGER"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="loginName" column="login_name" jdbcType="VARCHAR"/>
+        <result property="depId" column="dep_id" jdbcType="INTEGER"/>
+        <result property="positionId" column="position_id" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <association property="department" column="dep_id" select="com.softeem.dao.DepartmentDao.queryById"/>
+        <association property="position" column="position_id" select="com.softeem.dao.PositionDao.queryById"/>
+    </resultMap>
+    <select id="queryEmInfoByUsernameAndPassword" resultMap="UserInfoMap">
+       SELECT em_id,password,name,login_name,dep_id,position_id,status,head_portrait FROM employee WHERE
+        login_name = #{userName} AND password = #{password} AND status = 1
+    </select>
+
+    <select id="queryPageList" resultMap="UserInfoMap">
+        SELECT em_id,
+        name,
+        login_name,
+        dep_id,
+        position_id,
+        status
+        FROM employee
+        <where>
+            <if test="name != null and name!=''">
+                name LIKE CONCAT('%',#{name},'%')
+            </if>
+            <if test="depId != null">
+                dep_id = #{depId}
+            </if>
+            <if test="positionId != null">
+                position_id = #{positionId}
+            </if>
+            <if test="status != null">
+                status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!--    切换状态-->
+    <update id="updateFailureStatusById" parameterType="java.lang.Integer">
+        UPDATE employee
+        SET  status = 0
+        WHERE em_id = #{emId}
+    </update>
+    <update id="updateSuccessStatusById" parameterType="java.lang.Integer">
+        UPDATE employee
+        SET  status = 1
+        WHERE em_id = #{emId}
+    </update>
+
+    <!--    查重,登录名(手机号)查重-->
+    <select id="selectCountByLoginName" resultType="java.lang.Integer" parameterType="java.lang.String">
+       SELECT COUNT(1) FROM employee WHERE login_name = #{loginName}
+    </select>
+    <select id="queryEmployeeById" resultMap="UserInfoMap" parameterType="java.lang.Integer">
+     SELECT em_id,
+            name,
+            login_name,
+            dep_id,
+            position_id,
+            status
+            FROM employee
+            WHERE em_id = #{employeeId}
+    </select>
+    <!--<select id="queryFounderList" resultType="com.softeem.dto.responseDTO.EmployeeActiveListResponseDTO">
+	    SELECT employee.em_id, employee.`name` FROM employee LEFT JOIN position on position.position_id =  employee.em_id where  position_name LIKE CONCAT('%','经理','%') and employee.`status` = 1 AND position.`status` = 1
+    </select>
+-->
+</mapper>

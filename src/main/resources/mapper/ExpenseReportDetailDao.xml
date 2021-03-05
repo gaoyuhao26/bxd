@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.softeem.dao.ExpenseReportDetailDao">
+
+    <resultMap type="com.softeem.entity.ExpenseReportDetail" id="ExpenseReportDetailMap">
+        <result property="expensiveDetailId" column="expensive_detail_id" jdbcType="INTEGER"/>
+        <result property="expensiveId" column="expensive_id" jdbcType="INTEGER"/>
+        <result property="item" column="item" jdbcType="VARCHAR"/>
+        <result property="amount" column="amount" jdbcType="NUMERIC"/>
+        <result property="comment" column="comment" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="ExpenseReportDetailMap">
+        select
+          expensive_detail_id, expensive_id, item, amount, comment
+        from ssm_project.expense_report_detail
+        where expensive_detail_id = #{expensiveDetailId}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="ExpenseReportDetailMap">
+        select
+          expensive_detail_id, expensive_id, item, amount, comment
+        from ssm_project.expense_report_detail
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="ExpenseReportDetailMap">
+        select
+          expensive_detail_id, expensive_id, item, amount, comment
+        from ssm_project.expense_report_detail
+        <where>
+            <if test="expensiveDetailId != null">
+                and expensive_detail_id = #{expensiveDetailId}
+            </if>
+            <if test="expensiveId != null">
+                and expensive_id = #{expensiveId}
+            </if>
+            <if test="item != null and item != ''">
+                and item = #{item}
+            </if>
+            <if test="amount != null">
+                and amount = #{amount}
+            </if>
+            <if test="comment != null and comment != ''">
+                and comment = #{comment}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="expensiveDetailId" useGeneratedKeys="true">
+        insert into ssm_project.expense_report_detail(expensive_id, item, amount, comment)
+        values (#{expensiveId}, #{item}, #{amount}, #{comment})
+    </insert>
+    <insert id="insertList" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="expensiveDetailId" keyColumn="expensive_detail_id">
+        insert into ssm_project.expense_report_detail(expensive_id, item, amount, comment)
+        values
+        <foreach collection="list" item="item" index="index" separator="," >
+           (#{item.expensiveId}, #{item.item}, #{item.amount}, #{item.comment})
+        </foreach>
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update ssm_project.expense_report_detail
+        <set>
+            <if test="expensiveId != null">
+                expensive_id = #{expensiveId},
+            </if>
+            <if test="item != null and item != ''">
+                item = #{item},
+            </if>
+            <if test="amount != null">
+                amount = #{amount},
+            </if>
+            <if test="comment != null and comment != ''">
+                comment = #{comment},
+            </if>
+        </set>
+        where expensive_detail_id = #{expensiveDetailId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from ssm_project.expense_report_detail where expensive_detail_id = #{expensiveDetailId}
+    </delete>
+
+    
+    
+    <select id="selectByexpensiveId" resultMap="ExpenseReportDetailMap">
+        select
+          expensive_detail_id, expensive_id, item, amount, comment
+        from ssm_project.expense_report_detail
+        where expensive_id = #{expensive_id}
+    </select>
+</mapper>
